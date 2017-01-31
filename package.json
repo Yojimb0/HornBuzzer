@@ -1,0 +1,25 @@
+{
+  "name": "hornbuzzer",
+  "version": "1.0.0",
+  "description": "The evil child of an air-horn and a buzzer. Create a dead simple quiz platform. Build in node-js.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Yojimb0/HornBuzzer.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Yojimb0/HornBuzzer/issues"
+  },
+  "homepage": "https://github.com/Yojimb0/HornBuzzer#readme",
+  "dependencies": {
+    "express": "^4.14.1",
+    "pug": "^2.0.0-beta10",
+    "socket.io": "^1.7.2"
+  }
+}

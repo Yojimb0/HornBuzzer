@@ -1,0 +1,106 @@
+extends layout.pug
+
+block content
+
+	section.team
+		header
+			p Playing for team
+			h1= team
+
+		button.buzz
+			img(src="/horn.svg")
+
+		.toast
+
+block scripts
+
+	script(src="/socket.io/socket.io.js")
+
+	script.
+		var team = "#{team}";
+		var playBackRate = #{Math.random() + .7};
+		var socket = io();
+		var buzz = document.querySelector('.buzz');
+		var toast = document.querySelector('.toast');
+		var hornInstance;
+
+		var start = function(e){
+			if(!!e == true) e.preventDefault();
+			console.log('Buzzing');
+			document.body.setAttribute('buzzing', true);
+			hornInstance.start();
+			socket.emit('buzz', team);
+		}
+
+		var stop = function(e){
+			if(!!e == true) e.preventDefault();
+			console.log('Stop.');
+			hornInstance.stop();
+		}
+
+		var horn = function(){
+			var audioSrc = '/AIRHORN.mp3';
+			var audioCtx = new (window.AudioContext || window.webkitAudioContext);
+			var buffer;
+			var source;
+			
+			return {
+				loadSound: function(cb){
+					if(!!buffer == true) {
+						// If the buffer is already loaded, use that.
+						cb(buffer);
+						return;
+					}
+					var xhr = new XMLHttpRequest();
+					xhr.onload = function() {
+						audioCtx.decodeAudioData(xhr.response, function(decodedBuffer) { cb(decodedBuffer); });
+					};
+					xhr.open('GET', audioSrc);
+					xhr.responseType = 'arraybuffer';
+					xhr.send();
+				},
+				start: function(){
+					this.loadSound(function(tmpBuffer) {
+						source = audioCtx.createBufferSource();
+						source.connect(audioCtx.destination);
+						source.buffer = tmpBuffer;
+						source.onended = function () {self.stop();};
+
+						source.start(0);
+						source.playbackRate.value = playBackRate;
+						source.loop = false;
+						source.loopStart = 0;
+						source.loopEnd = 0.15;
+					});
+				},
+				stop: function(){
+					console.log('hornInstance Stop.');
+					if(!!source === true) source.loop = false;
+				}
+			}
+		};
+
+		hornInstance = horn();
+
+		buzz.addEventListener('mousedown', start);
+		buzz.addEventListener('touchstart', start);
+
+		document.documentElement.addEventListener('mouseup', stop);
+		document.documentElement.addEventListener('touchend', stop);
+
+		socket.on('winner', function(winner){
+			if(winner == team){
+				document.body.setAttribute('state', 'winner');
+				toast.innerHTML = 'You got this one !! What\'s your answer ?';
+				return
+			}
+			document.body.setAttribute('state', 'loser');
+			toast.innerHTML = '<strong>' + winner + '</strong> was faster';
+		});
+
+		socket.on('reset', function(){
+			document.body.setAttribute('state', 'waiting');
+		});
+
+		
+
