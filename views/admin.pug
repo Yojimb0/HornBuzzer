@@ -1,0 +1,54 @@
+extends layout.pug
+
+block content
+
+	section.admin
+		header
+			h1 Admin
+		
+		div.winners
+			p Teams ranking for current question
+			table
+				thead
+					tr
+						th Team
+						th Time
+				tbody
+
+
+		button.reset reset
+
+
+block scripts
+
+	script(src="/socket.io/socket.io.js")
+
+	script.
+		var socket = io();
+		var resetButton = document.querySelector('.reset');
+		var toast = document.querySelector('.toast');
+		var table = document.querySelector('tbody');
+
+		var reset = function(e){
+			if(!!e == true) e.preventDefault();
+			socket.emit('reset');
+		}
+
+		resetButton.addEventListener('mousedown', reset);
+		resetButton.addEventListener('touchstart', reset);
+
+		socket.on('winner', function(respondingTeams){
+			console.log('A buzz happened, lets update the result table');
+			table.innerHTML = '';
+			respondingTeams.forEach(function(team){
+				table.innerHTML += '<tr><td>' + team.team + '</td><td>'+team.time+'</td></tr>';
+			})
+		});
+
+		socket.on('resetClients', function(){
+			console.log('Resetting state');
+			table.innerHTML = '';
+		});
+
+		
+

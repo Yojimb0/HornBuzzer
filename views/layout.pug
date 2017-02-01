@@ -6,6 +6,17 @@ html
 		link(rel="stylesheet", href="/style.css")
 		block head
 	body
-		block content
+
+		section.container
+			block content
+
+		.toast
 			
 		block scripts
+
+		script.
+			var toast = document.querySelector('.toast');
+
+			toast.addEventListener('click', function(){
+				toast.innerHTML = '';
+			})

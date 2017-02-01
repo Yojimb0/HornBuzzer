@@ -2,15 +2,14 @@ extends layout.pug
 
 block content
 
+	header
+		h1 Team #[em= team]
+
 	section.team
-		header
-			p Playing for team
-			h1= team
 
-		button.buzz
-			img(src="/horn.svg")
-
-		.toast
+		.buzz-container
+			button.buzz
+				img(src="/horn.svg")
 
 block scripts
 
@@ -44,12 +43,14 @@ block scripts
 			var currentlyPlaying = 0;
 
 			return {
+				init: function(){
+					this.loadSound(function(decodedBuffer) {
+						buffer = decodedBuffer;
+					});
+				},
 				loadSound: function(cb){
-					if(!!buffer == true) {
-						// If the buffer is already loaded, use that.
-						cb(buffer);
-						return;
-					}
+					if(!!buffer == true) { cb(buffer); return; }
+
 					var xhr = new XMLHttpRequest();
 					xhr.onload = function() {
 						audioCtx.decodeAudioData(xhr.response, function(decodedBuffer) { cb(decodedBuffer); });
@@ -79,7 +80,6 @@ block scripts
 					});
 				},
 				stop: function(){
-					console.log('hornInstance Stop.', audioCtx);
 					if(!!source === true) source.loop = false;
 				},
 				stopWiggle: function(){
@@ -89,6 +89,7 @@ block scripts
 		};
 
 		hornInstance = horn();
+		hornInstance.init();
 
 		buzz.addEventListener('mousedown', start);
 		buzz.addEventListener('touchstart', start);
@@ -96,18 +97,21 @@ block scripts
 		document.documentElement.addEventListener('mouseup', stop);
 		document.documentElement.addEventListener('touchend', stop);
 
-		socket.on('winner', function(winner){
-			if(winner == team){
+		socket.on('winner', function(respondingTeams){
+			console.log('Responding teams :', respondingTeams, team);
+			if(respondingTeams[0].team == team){
 				document.body.setAttribute('state', 'winner');
-				toast.innerHTML = 'You got this one !! What\'s your answer ?';
+				toast.innerHTML = 'You got this one !!<br>What\'s your answer ?';
 				return
 			}
 			document.body.setAttribute('state', 'loser');
-			toast.innerHTML = '<strong>' + winner + '</strong> was faster';
+			toast.innerHTML = '<strong>' + respondingTeams[0].team + '</strong> team was faster';
 		});
 
-		socket.on('reset', function(){
+		socket.on('resetClients', function(){
+			console.log('Resetting state');
 			document.body.setAttribute('state', 'waiting');
+			toast.innerHTML = '';
 		});
 
 		
