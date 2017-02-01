@@ -27,11 +27,10 @@ app.get('/team/:team', function(req, res){
 /* WebSocket communication
 ---------------------------------------*/
 io.on('connection', function(socket){
-	console.log('a user connected');
+	console.log('[server.js - socket] New connection');
 	socket.on('buzz', function(team){
-		console.log('buzzing: ' + team);
 		if(!currentWinner) currentWinner = team;
-		console.log('currentWinner: ' + currentWinner);
+		console.log('[server.js - socket] buzz from team:' + team + ' currentWinner:' + currentWinner);
 		socket.emit('winner', currentWinner);
 	});
 });
@@ -39,6 +38,6 @@ io.on('connection', function(socket){
 
 /* Server
 ---------------------------------------*/
-http.listen(8080, function(){
-	console.log('listening on *:8080');
+http.listen(process.env.PORT || 5000, function(){
+	console.log('[server.js - listen] port:' + process.env.PORT || 5000);
 });
