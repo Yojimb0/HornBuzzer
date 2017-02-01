@@ -26,7 +26,6 @@ block scripts
 
 		var start = function(e){
 			if(!!e == true) e.preventDefault();
-			console.log('Buzzing');
 			document.body.setAttribute('buzzing', true);
 			hornInstance.start();
 			socket.emit('buzz', team);
@@ -34,7 +33,6 @@ block scripts
 
 		var stop = function(e){
 			if(!!e == true) e.preventDefault();
-			console.log('Stop.');
 			hornInstance.stop();
 		}
 
@@ -43,7 +41,8 @@ block scripts
 			var audioCtx = new (window.AudioContext || window.webkitAudioContext);
 			var buffer;
 			var source;
-			
+			var currentlyPlaying = 0;
+
 			return {
 				loadSound: function(cb){
 					if(!!buffer == true) {
@@ -60,11 +59,17 @@ block scripts
 					xhr.send();
 				},
 				start: function(){
+					self = this;
 					this.loadSound(function(tmpBuffer) {
+						currentlyPlaying += 1;
 						source = audioCtx.createBufferSource();
 						source.connect(audioCtx.destination);
 						source.buffer = tmpBuffer;
-						source.onended = function () {self.stop();};
+						source.onended = function () {
+							currentlyPlaying -= 1;
+							self.stop();
+							if(currentlyPlaying == 0) self.stopWiggle();
+						};
 
 						source.start(0);
 						source.playbackRate.value = playBackRate;
@@ -74,8 +79,11 @@ block scripts
 					});
 				},
 				stop: function(){
-					console.log('hornInstance Stop.');
+					console.log('hornInstance Stop.', audioCtx);
 					if(!!source === true) source.loop = false;
+				},
+				stopWiggle: function(){
+					document.body.setAttribute('buzzing', false);
 				}
 			}
 		};
